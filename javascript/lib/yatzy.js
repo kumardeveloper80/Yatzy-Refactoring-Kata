@@ -1,238 +1,134 @@
-var Yatzy = function(d1, d2, d3, d4, _5) {
-    this.dice = [];
-    this.dice[0] = d1;
-    this.dice[1] = d2;
-    this.dice[2] = d3;
-    this.dice[3] = d4;
-    this.dice[4] = _5;
 
-    this.fours = function()
-    {
-        var sum;
-        sum = 0;
-        for (at = 0; at != 5; at++) {
-            if (this.dice[at] == 4) {
-                sum += 4;
-            }
-        }
-        return sum;
+class Yatzy {
+    constructor(d1, d2, d3, d4, d5) {
+        this.dice = [];
+        this.dice[0] = d1;
+        this.dice[1] = d2;
+        this.dice[2] = d3;
+        this.dice[3] = d4;
+        this.dice[4] = d5;
     }
+    ones = () => { return getSumOfDice(this.dice, 1) }
+    twos = () => { return getSumOfDice(this.dice, 2) }
+    threes = () => { return getSumOfDice(this.dice, 3) }
+    fours = () => { return getSumOfDice(this.dice, 4) }
+    fives = () => { return getSumOfDice(this.dice, 5) }
+    sixes = () => { return getSumOfDice(this.dice, 6) }
 
-    this.fives = function()
-    {
-        s = 0
-        var i
-        for (i = 0; i < this.dice.length; i++)
-            if (this.dice[i] == 5)
-                s = s + 5;
-        return s;
-    }
+    chance = () => { return getTotalSum(this.dice) }
+    yatzy = () => { return yatzy()}
 
-    this.sixes = function()
-    {
-        sum = 0;
-        for (var at = 0; at < this.dice.length; at++)
-            if (this.dice[at] == 6)
-                sum = sum + 6;
-        return sum;
-    }
+    score_pair = () => { return scorePair(this.dice) }
+    two_pair = () => { return twoPair(this.dice) }
+
+    three_of_a_kind = () => { return number_of_a_kind(this.dice, 3) }
+    four_of_a_kind = () => { return number_of_a_kind(this.dice, 4) }
+
+    smallStraight = () => { return setStraight(this.dice, 15) }
+    largeStraight = () => { return setStraight(this.dice, 20) }
+
+    fullHouse = () => { return fullHouse(this.dice) }
 }
-
-
-
-Yatzy.chance = function(d1, d2, d3, d4, d5) {
-    var total = 0;
-    total += d1;
-    total += d2;
-    total += d3;
-    total += d4;
-    total += d5;
+const getSumOfDice = (dice, value) => {
+    let sum = 0;
+    for (let i = 0; i < dice.length; i++)
+        if (dice[i] === value)
+            sum += value;
+    return sum;
+} 
+const getTotalSum = (dice) => {
+    let total = 0;
+    for (let i = 0; i < dice.length; i++)
+        total += dice[i];
     return total;
 }
+const setStraight = (dice, value) => {
+    dice.sort();
+    let tallies = setTallies(dice, 0);
+    if (tallies[0] == 1 &&
+        tallies[1] == 1 &&
+        tallies[2] == 1 &&
+        tallies[3] == 1
+        && tallies[4] == 1)
+        return value;
+    return 0;
+}
+const setTallies = (dice, inc = 1) => {
+    let tallies = [0, 2, 3, 0, 0, 0, 0, 0], index = 0;
+    for (let i = dice[index]; index < dice.length; i = dice[index]) {
+        index += 1
+        if (inc === 1)
+            tallies[i - 1] += inc
+        else
+            tallies[i - 1]++;
+    }
+    return tallies;
+}
+const number_of_a_kind = (dice, number_of_kind) => {
+    dice.sort();
+    let tallies = setTallies(dice, 0)
+    for (i = 0; i < 6; i++)
+        if (tallies[i] >= number_of_kind)
+            return (i + 1) * number_of_kind;
+    return 0;
+}
+const setYatzy = () => {
+    let tallies = setTallies()
+}
+const scorePair = (dice) => {
+    dice.sort()
+    let tallies = setTallies(dice, 0);
+    for (let i = 0; i != 6; i++)
+        if (tallies[6 - i - 1] >= 2)
+            return (6 - i) * 2
+    return 0;
+}
+const twoPair = (dice) => {
+    dice.sort();
+    let tallies = setTallies(dice, 0), n = 0, score = 0;
+    for (i = 0; i < 6; i += 1)
+        if (tallies[6 - i - 1] >= 2) {
+            n++;
+            score += (6 - i);
+        }
+    score = n === 2 ? score * 2 : 0
+    return score;
+}
+const fullHouse = (dice) => {
+    dice.sort();
+    let tallies = setTallies(dice);
+    let _2, _2_at;
+    let _3 ,_3_at;
 
-Yatzy.yatzy = function() {
-    var counts = [0, 0, 0, 0, 0, 0, 0, 0];
-    for (var i = 0; i != arguments.length; ++i) {
-    var die = arguments[i];
+    
+    var data = set(tallies, 2);
+    _2 = data._d; _2_at = data._d_at;
+
+    data = set(tallies, 3);
+    _3 = data._d; _3_at = data._d_at;
+   
+    return (_2 && _3) ? _2_at * 2 + _3_at * 3 : 0;
+}
+const set = (tallies, value) => {
+    let _d = false, _d_at = 0;
+   
+    for (let i = 0; i != 6; i += 1)
+    if (tallies[i] == value) {
+        _d = true;
+        _d_at = i + 1;
+    }
+    return { _d , _d_at }
+}
+
+const yatzy = () => {
+    let counts = [0, 0, 0, 0, 0, 0, 0, 0];
+    for (var i = 0; i != counts.length; ++i) {
+    let die = counts[i];
     counts[die-1]++; }
     for (i = 0; i != 6; i++)
         if (counts[i] == 5)
             return 50;
     return 0;
 }
-
-Yatzy.ones = function(d1, d2, d3, d4, d5) {
-    var sum = 0;
-    if (d1 == 1) sum++;
-    if (d2 == 1) sum++;
-    if (d3 == 1) sum++;
-    if (d4 == 1) sum++;
-    if (d5 == 1)
-        sum++;
-
-    return sum;
-}
-
-Yatzy.twos = function(d1, d2, d3, d4, d5) {
-    var sum = 0;
-    if (d1 == 2) sum += 2;
-    if (d2 == 2) sum += 2;
-    if (d3 == 2) sum += 2;
-    if (d4 == 2) sum += 2;
-    if (d5 == 2) sum += 2;
-    return sum;
-}
-
-Yatzy.threes = function(d1, d2, d3, d4, d5) {
-    var s;
-    s = 0;
-    if (d1 == 3) s += 3;
-    if (d2 == 3) s += 3;
-    if (d3 == 3) s += 3;
-    if (d4 == 3) s += 3;
-    if (d5 == 3) s += 3;
-    return s;
-}
-
-Yatzy.score_pair = function(d1, d2, d3, d4, d5)
-{
-    var counts = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-    counts[d1-1]++;
-    counts[d2-1]++;
-    counts[d3-1]++;
-    counts[d4-1]++;
-    counts[d5-1]++;
-    var at;
-    for (at = 0; at != 6; at++)
-        if (counts[6-at-1] >= 2)
-            return (6-at)*2;
-    return 0;
-}
-
-Yatzy.two_pair = function(d1, d2, d3, d4, d5)
-{
-    var counts = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-    counts[d1-1]++;
-    counts[d2-1]++
-    counts[d3-1]++
-    counts[d4-1]++;
-    counts[d5-1]++;
-    var n = 0;
-    var score = 0;
-    for (i = 0; i < 6; i += 1)
-        if (counts[6-i-1] >= 2) {
-            n++;
-            score += (6-i);
-        }
-    if (n == 2)
-        return score * 2;
-    else
-        return 0;
-}
-
-Yatzy.four_of_a_kind = function(_1, _2, d3, d4, d5)
-{
-    var tallies;
-    tallies = [0, 0, 0, 0, 0, 0, 0, 0]
-    tallies[_1-1]++;
-    tallies[_2-1]++;
-    tallies[d3-1]++;
-    tallies[d4-1]++;
-    tallies[d5-1]++;
-    for (i = 0; i < 6; i++)
-        if (tallies[i] >= 4)
-            return (i+1) * 4;
-    return 0;
-}
-
-Yatzy.three_of_a_kind = function(d1, d2, d3, d4, d5)
-{
-    var t;
-    t = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-    t[d1-1]++;
-    t[d2-1]++;
-    t[d3-1]++;
-    t[d4-1]++;
-    t[d5-1]++;
-    for (i = 0; i < 6; i++)
-        if (t[i] >= 3)
-            return (i+1) * 3;
-    return 0;
-}
-
-Yatzy.smallStraight = function(d1, d2, d3, d4, d5)
-{
-    var tallies;
-    tallies = [0, 0, 0, 0, 0, 0, 0]
-    tallies[d1-1] += 1;
-    tallies[d2-1] += 1;
-    tallies[d3-1] += 1;
-    tallies[d4-1] += 1;
-    tallies[d5-1] += 1;
-    if (tallies[0] == 1 &&
-        tallies[1] == 1 &&
-        tallies[2] == 1 &&
-        tallies[3] == 1 &&
-        tallies[4] == 1)
-        return 15;
-    return 0;
-}
-
-Yatzy.largeStraight = function(d1, d2, d3, d4, d5)
-{
-    var tallies;
-    tallies = [0, 0, 0, 0,0,0,0,0];
-    tallies[d1-1] += 1;
-    tallies[d2-1] += 1;
-    tallies[d3-1] += 1;
-    tallies[d4-1] += 1;
-    tallies[d5-1] += 1;
-    if (tallies[1] == 1 &&
-        tallies[2] == 1 &&
-        tallies[3] == 1 &&
-        tallies[4] == 1
-        && tallies[5] == 1)
-        return 20;
-    return 0;
-}
-
-Yatzy.fullHouse = function(d1, d2, d3, d4, d5)
-{
-    var tallies;
-    var  _2 = false;
-    var i;
-    var _2_at = 0;
-    var _3 = false;
-    var _3_at = 0;
-
-
-
-
-    tallies = [0, 0, 0, 0, 0, 0, 0, 0];
-    tallies[d1-1] += 1;
-    tallies[d2-1] += 1;
-    tallies[d3-1] += 1;
-    tallies[d4-1] += 1;
-    tallies[d5-1] += 1;
-
-    for (i = 0; i != 6; i += 1)
-        if (tallies[i] == 2) {
-            _2 = true;
-            _2_at = i+1;
-        }
-
-    for (i = 0; i != 6; i += 1)
-        if (tallies[i] == 3) {
-            _3 = true;
-            _3_at = i+1;
-        }
-
-    if (_2 && _3)
-        return _2_at * 2 + _3_at * 3;
-    else
-        return 0;
-}
-
-module.exports = Yatzy;
-
-
+console.log(new Yatzy().yatzy())
+module.exports = Yatzy ;
